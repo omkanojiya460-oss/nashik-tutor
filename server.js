@@ -14,9 +14,21 @@ app.get('/', (req, res) => {
 });
 
 app.post('/api/chat', async (req, res) => {
-  const { question } = req.body;
+  const { question, history = [] } = req.body;
 
   try {
+    const messages = [
+      {
+        role: 'system',
+        content: 'You are a helpful tutor for school and college students in Nashik, India. Answer student doubts clearly in simple English. Give short explanations with examples. Be friendly and encouraging. Remember the conversation context and refer to previous messages when relevant.'
+      },
+      ...history,
+      {
+        role: 'user',
+        content: question
+      }
+    ];
+
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -25,16 +37,7 @@ app.post('/api/chat', async (req, res) => {
       },
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a helpful tutor for school and college students in Nashik, India. Answer student doubts clearly in simple English. Give short explanations with examples. Be friendly and encouraging.'
-          },
-          {
-            role: 'user',
-            content: question
-          }
-        ],
+        messages,
         max_tokens: 500,
         temperature: 0.7
       })

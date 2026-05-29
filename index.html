@@ -92,7 +92,7 @@
 
 <script>
  
-
+  const conversationHistory = [];
   const chatMessages = document.getElementById('chatMessages');
   const userInput = document.getElementById('userInput');
 
@@ -115,6 +115,12 @@
     addMessage(question, true);
     userInput.value = '';
 
+    // User message history mein add karo
+    conversationHistory.push({
+      role: 'user',
+      content: question
+    });
+
     const typing = document.createElement('div');
     typing.className = 'msg-bot typing';
     typing.id = 'typing';
@@ -126,17 +132,27 @@
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question })
+        body: JSON.stringify({ 
+          question,
+          history: conversationHistory 
+        })
       });
 
       const data = await response.json();
       document.getElementById('typing').remove();
       addMessage(data.reply, false);
 
+      // AI reply bhi history mein save karo
+      conversationHistory.push({
+        role: 'assistant',
+        content: data.reply
+      });
+
     } catch (err) {
       document.getElementById('typing').remove();
       addMessage("Please check your internet and try again!", false);
     }
+  }
   }
 </script>
 
