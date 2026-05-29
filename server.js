@@ -1,0 +1,46 @@
+const express = require('express');
+const cors = require('cors');
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+app.use(express.static('.'));
+
+app.post('/api/chat', async (req, res) => {
+  const { question } = req.body;
+
+  try {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a helpful tutor for school and college students in Nashik, India. Answer student doubts clearly in simple English. Give short explanations with examples. Be friendly and encouraging.'
+          },
+          {
+            role: 'user',
+            content: question
+          }
+        ],
+        max_tokens: 500,
+        temperature: 0.7
+      })
+    });
+
+    const data = await response.json();
+    const reply = data.choices?.[0]?.message?.content || "Sorry, something went wrong!";
+    res.json({ reply });
+
+  } catch (err) {
+    res.status(500).json({ reply: "Server error. Please try again!" });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
